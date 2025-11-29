@@ -2,42 +2,46 @@ import playerIcon from "./icons/player.png";
 
 
 export function updateDisplay(board, player) {
-    for (let y = 0; y < board.length; y++) {
-        for (let x = 0; x < board[y].length; x++) {
-            const cell = board[y][x];
+    for (let x = 0; x < board.length; x++) {
+        for (let y = 0; y < board[x].length; y++) {
+            const cell = board[x][y];
 
-            if (cell.player) {
-                // draw player
-                cell.el.style.backgroundImage = `url(${playerIcon})`;
-                cell.el.style.backgroundSize = "cover";
-                cell.el.style.backgroundRepeat = "no-repeat";
+            // Clear everything first
+            cell.el.style.backgroundImage = "";
+            cell.el.style.transform = "rotate(0deg)";
 
-                const o = player.getOrientation();
-                if (o === "east") cell.el.style.transform = "rotate(90deg)";
-                if (o === "south") cell.el.style.transform = "rotate(180deg)";
-                if (o === "west") cell.el.style.transform = "rotate(270deg)";
-                if (o === "north") cell.el.style.transform = "rotate(0deg)";
-
-
-
-            } else {
-                // draw terrain
-                switch (cell.map) {
-                    case "building":
-                        cell.el.style.backgroundColor = "grey";
-                        break;
-                    case "path":
-                        cell.el.style.backgroundColor = "red";
-                        break;
-                    default:
-                        cell.el.style.backgroundColor = "green";
-                }
+            // Draw terrain
+            switch (cell.map) {
+                case "building":
+                    cell.el.style.backgroundColor = "grey";
+                    break;
+                case "path":
+                    cell.el.style.backgroundColor = "blue";
+                    break;
+                default:
+                    cell.el.style.backgroundColor = "green";
             }
-
         }
     }
+
+    // Draw player at its current position
+    const playerCell = board[player.y][player.x];
+    playerCell.el.style.backgroundImage = `url(${playerIcon})`;
+    playerCell.el.style.backgroundSize = "cover";
+    playerCell.el.style.backgroundRepeat = "no-repeat";
+
+    switch (player.orientation) {
+        case "east":
+            playerCell.el.style.transform = "rotate(90deg)";
+            break;
+        case "south":
+            playerCell.el.style.transform = "rotate(180deg)";
+            break;
+        case "west":
+            playerCell.el.style.transform = "rotate(270deg)";
+            break;
+        case "north":
+            playerCell.el.style.transform = "rotate(0deg)";
+            break;
+    }
 }
-
-// UPDATE ORIENTATION ON RENDERER
-
-//       cell.el.style.transform = "rotate(90deg)";

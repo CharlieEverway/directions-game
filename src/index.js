@@ -1,24 +1,69 @@
 // index.js
 import "./styles.css";
-import { makeBoard, setBoard } from "./board.js";
+import { makeBoard, setBoard, isWalkable } from "./board.js";
 import { updateDisplay } from "./renderer.js";
 import { createPlayer } from './player.js';
 
 const board = makeBoard();
 setBoard(board);
 console.log(board);
-
-
 const player = createPlayer(2, 4);
-console.log(player.getPosition());
-console.log(player.getOrientation());
-console.log(player.turnRight());
-
 updateDisplay(board, player);
+//game setup
 
-const turnRightButton = document.querySelector('turn-right-btn');
+console.log(player.x, player.y);
+console.log(player.getPosition())
 
 
+//btns
+const turnRightBtn = document.querySelector('#turn-right-btn');
+turnRightBtn.addEventListener("click", () => {
+    console.log("Turn Right Button clicked");
+    player.turnRight();
+    updateDisplay(board, player);
+});
+
+const turnLeftBtn = document.querySelector('#turn-left-btn');
+turnLeftBtn.addEventListener("click", () => {
+    console.log("Turn Left Button clicked");
+    player.turnLeft();
+    updateDisplay(board, player);
+});
+
+
+const goStraightBtn = document.querySelector('#go-straight-btn');
+goStraightBtn.addEventListener("click", () => {
+    console.log("Go Straight Button clicked");
+    board[player.x][player.y].player = null;
+    //clears the current pos
+
+    if (isWalkable(board, player.x, player.y, player.orientation)) {
+        console.log("It is walkable, proceed!")
+        player.move();
+    } else {
+        console.log("It is not walkable. Stop.")
+        return;
+    };
+
+    board[player.x][player.y].player = player;
+    updateDisplay(board, player);
+    console.log(player.x, player.y);
+    console.log(player.getPosition());
+    console.log(board)
+});
+
+
+
+// MAJOR ERROR WHEN TRYING TO GO OFF SCREEN! FIX!!!
+
+// You could make a movePlayer(board, player) function that handles clearing, moving, and updating the board—then all buttons just call that.
+
+// Later, you could add a isWalkable check before moving so the player doesn’t go through buildings.
+
+// This keeps player and board in sync, so the renderer always shows the correct cell.
+
+// console.log(player.getPosition());
+// console.log(player.getOrientation());
 
 //GAME LOOP, display everything, wait for input, when input, update display everything
 
