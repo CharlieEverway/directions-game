@@ -1,107 +1,209 @@
 // index.js
 import "./styles.css";
 import { makeBoard, setBoard, isWalkable } from "./board.js";
-import { updateDisplay } from "./renderer.js";
+import { setDisplay, updatePlayer } from "./renderer.js";
 import { createPlayer } from './player.js';
 
 const board = makeBoard();
-setBoard(board);
-console.log(board);
 const player = createPlayer(4, 2);
-updateDisplay(board, player);
-//game setup
-
-console.log(player.y, player.x);
-console.log(player.getPosition())
-
+setBoard(board);
+setDisplay(board);
+updatePlayer(player)
+//Game Setup
 
 //btns
 const turnRightBtn = document.querySelector('#turn-right-btn');
 turnRightBtn.addEventListener("click", () => {
-    console.log("Turn Right Button clicked");
     player.turnRight();
-    updateDisplay(board, player);
-    console.log(player.getOrientation())
+    updatePlayer(player);
 });
 
 const turnLeftBtn = document.querySelector('#turn-left-btn');
 turnLeftBtn.addEventListener("click", () => {
-    console.log("Turn Left Button clicked");
-
     player.turnLeft();
-    updateDisplay(board, player);
-        console.log(player.getOrientation())
+    updatePlayer(player);
 });
 
 
 const goStraightBtn = document.querySelector('#go-straight-btn');
 goStraightBtn.addEventListener("click", () => {
-    console.log("Go Straight Button clicked");
     board[player.y][player.x].player = null;
-    //clears the current pos
+    //Clear player position
 
     if (isWalkable(board, player.y, player.x, player.orientation)) {
-        console.log("It is walkable, proceed!")
         player.move();
     } else {
-        console.log("It is not walkable. Stop.")
         return;
     };
 
     board[player.y][player.x].player = player;
-    updateDisplay(board, player);
-    console.log("Checking player stats")
-    console.log(player.y, player.x);
-    console.log(player.getPosition());
-    console.log(board)
-        console.log("Checking player stats end")
+    //set new position
+    updatePlayer(player);
 });
 
+//RESET BTN
 
 
-// MAJOR ERROR WHEN TRYING TO GO OFF SCREEN! FIX!!!
-
-// You could make a movePlayer(board, player) function that handles clearing, moving, and updating the board—then all buttons just call that.
-
-// Later, you could add a isWalkable check before moving so the player doesn’t go through buildings.
-
-// This keeps player and board in sync, so the renderer always shows the correct cell.
-
-// console.log(player.getPosition());
-// console.log(player.getOrientation());
-
-//GAME LOOP, display everything, wait for input, when input, update display everything
+// To Dp: Add GOAL building, add "you can see it on your right etc."
+// create a nice design
+//reset button
+//levels
+//how are goals set
+//how are buildings set?
+//start screen
+//refactor my code, using odin principles. Each function should have a single purpose
+//multipurpose functiosn can be condensed
+//How is the player and board is being stored? Seperately? Shouldnt they be synced better?
 
 
-// console.log(player.x, player.y);  // reads from the board
-// player.position = { x: 3, y: 1 }; // updates the board
+// 2. You store player twice: in player.js state AND in board cells
 
-//self memos
-//default vs named exports, i should only export one or the other
+// You maintain:
 
-//import testImage from "./resturauntImg.png"
-// const image = document.createElement("img");
-// image.src = testImage;
+// The player object’s own (y, x)
 
-// document.body.appendChild(image);
-//importing an image
-// board[player.y][player.x].player = player;
+// And board[y][x].player = player
 
-// index.js → bootstrapping only
+// This duplication is easy to desync.
+// You already track the player’s coordinates internally → board shouldn’t also track it unless you have a later mechanic that truly needs cell occupancy.
 
-// This file should just:
+// If you don’t need it, remove:
 
-// create the board
+// board[y][x].player = player;
+// board[player.y][player.x].player = null;
 
-// place initial stuff
 
-// attach event listeners
+// Your render function uses only player.x/y anyway.
 
-// call renderer initially
+// Confidence: 9/10.
 
-// start the game loop (if you add one)
+
+// 3. buildingCounter increments in fixed order; this relies on board layout stability
+
+// If the map changes, building images will mismatch tile positions.
+// Better: assign a building image ID when setting up the board.
+
+// Instead of:
+
+// case "building":
+//     cell.el.style.backgroundImage = `url(${buildingImgs[buildingCounter]})`;
+//     buildingCounter++;
+//     break;
+
+
+// Assign during board creation:
+
+// board[y][x].img = buildingImgs[someIndex];
+
+
+// Then rendering becomes stable.
+
+// Not critical now, but future-proofing.
+
+
+
+// 4. A tiny off-center issue on the player
+
+// You offset by 35px:
+
+// left = x * 100 + 35
+// top  = y * 100 + 35
+
+
+// Correct center = (100 - 50) / 2 = 25.
+// If it looked “a bit left,” your source icon probably has empty padding.
+
+// Use translate(-50%, -50%) instead. That removes pixel-magic completely.
+
+// Example (not code you must use; concept):
+
+// Place player at (x * TILE_SIZE + 50, y * TILE_SIZE + 50)
+
+// Apply CSS transform to center it.
+
+
+// 5. isWalkable should check allowed types more cleanly
+
+// Right now:
+
+// if (map === "path" || map === "path2" || map === "path3")
+
+
+// Consider a whitelist:
+
+
+// 7. setDisplay() resets transforms every frame
+
+// Not required unless:
+
+// orientation affects tiles
+
+// you plan dynamic updates
+
+// Otherwise, you could drop:
+
+// cell.el.style.transform = "rotate(0deg)";
+
+
+// Minor optimization.
+
+// Confidence: 6/10.
+
+// 8. makeBoard() mixes data and DOM too tightly
+
+// Right now, each board cell directly stores:
+
+// el: DOM element
+
+
+// This is fine for a small project, but it prevents:
+
+// offscreen rendering
+
+// changing the rendering system
+
+// alternate views
+
+// A more flexible pattern is:
+
+// Board = pure data
+
+// Renderer = consumes data + DOM
+
+// Not mandatory for your scope. Just a design concern.
+
+// Confidence: 5/10.
+
+// 9. Path types (path, path2, path3) feel arbitrary
+
+// You could unify them:
+
+// type: "path"
+// variant: "straight" | "center" | "horizontal"
+
+
+// Cleaner long-term.
+
+// const walkable = new Set(["path", "path2", "path3"]);
+// return walkable.has(board[y][x].map);
+
+
+// Simplifies future expansion.
+
+
+
 
 
 // future implementations ( a legend, for self study) -- explains game logic in JP and English
 //you can see it on your left etc. how to make it work.
 // memo, my PATH should be thinner than the rest of the board
+
+
+
+// console.log("Checking player stats")
+// console.log(player.y, player.x);
+// console.log(player.getPosition());
+// console.log(board)
+// console.log("Checking player stats end")
+//     console.log(player.y, player.x);
+// console.log(player.getPosition())

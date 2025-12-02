@@ -1,11 +1,22 @@
 //renderer.js
-import playerIcon from "./icons/guy.png";
 import tileGrass from "./tiles/tileGrass.png";
 import tilePath from "./tiles/tilePath.jpg";
 import tileCenter from "./tiles/tileCenter.png";
+import tileBuilding1 from "./tiles/tileBuilding1.png";
+import tileBuilding2 from "./tiles/tileBuilding2.png";
+import tileBuilding3 from "./tiles/tileBuilding3.png";
 import tileBuilding4 from "./tiles/tileBuilding4.png";
+import tileBuilding5 from "./tiles/tileBuilding5.png";
+import tileBuilding6 from "./tiles/tileBuilding6.png";
+import tileBuilding7 from "./tiles/tileBuilding7.png";
 
-export function updateDisplay(board, player) {
+const buildingImgs = [tileBuilding1, tileBuilding2,
+    tileBuilding3, tileBuilding4, tileBuilding5,
+    tileBuilding6, tileBuilding7];
+let buildingCounter = 0;
+
+export function setDisplay(board) {
+    buildingCounter = 0;
     for (let y = 0; y < board.length; y++) {
         for (let x = 0; x < board[y].length; x++) {
             const cell = board[y][x];
@@ -17,7 +28,8 @@ export function updateDisplay(board, player) {
             // Draw terrain
             switch (cell.map) {
                 case "building":
-                    cell.el.style.backgroundImage = `url(${tileBuilding4})`;
+                    cell.el.style.backgroundImage = `url(${buildingImgs[buildingCounter]})`;
+                    buildingCounter++;
                     break;
                 case "path":
                     cell.el.style.backgroundImage = `url(${tilePath})`;
@@ -33,25 +45,19 @@ export function updateDisplay(board, player) {
                     cell.el.style.backgroundImage = `url(${tileGrass})`;
             }
         }
-    }
 
+    }
+}
+
+export function updatePlayer(player) {
     // Draw player at its current position
     const playerCell = document.getElementById("player");
     const TILE_SIZE = 100;
     const PLAYER_SIZE = 50;
-
     playerCell.style.width = PLAYER_SIZE + "px";
     playerCell.style.height = PLAYER_SIZE + "px";
-
     playerCell.style.left = `${player.x * TILE_SIZE + 35}px`;
     playerCell.style.top = `${player.y * TILE_SIZE + 35}px`;
-    // playerCell.style.backgroundSize = "cover";
-    // playerCell.style.backgroundRepeat = "no-repeat";
-
-
-    // const playerCell = board[player.y][player.x];
-    // playerCell.el.style.backgroundImage = `url(${playerIcon})`;
-
 
     switch (player.orientation) {
         case "east":
